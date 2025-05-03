@@ -58,6 +58,7 @@
         .volume-control {
             width: 100%;
             padding: 1rem 0;
+            display: none; /* Hidden as requested */
         }
         
         .volume-slider {
@@ -67,6 +68,7 @@
             background: #d1d1d6;
             outline: none;
             border-radius: 5px;
+            display: none; /* Hidden as requested */
         }
         
         .volume-slider::-webkit-slider-thumb {
@@ -93,6 +95,18 @@
             font-size: 1.2rem;
             font-weight: 500;
         }
+        
+        .file-info {
+            margin-bottom: 1.5rem;
+            color: #666;
+            font-size: 0.9rem;
+            display: none; /* Hidden as requested */
+        }
+        
+        .file-selector {
+            margin-top: 2rem;
+            display: none; /* Hidden as requested */
+        }
     </style>
 </head>
 <body>
@@ -103,23 +117,19 @@
             <div class="player-icon">▶</div>
         </div>
         
-        <div class="volume-control">
-            <input type="range" min="0" max="1" step="0.01" value="0.7" class="volume-slider" id="volumeSlider">
-        </div>
-        
         <div class="status" id="status">Ready to play</div>
     </div>
 
     <script>
         // Create audio element
-        const audio = new Audio('noise.mp3');
+        const audioFile = 'noise.m4a'; // Changed to m4a file
+        const audio = new Audio(audioFile);
         audio.loop = true;
-        audio.volume = 0.7;
+        audio.volume = 1.0; // Set to full volume since there's no slider
         
         // Get elements
         const playButton = document.getElementById('playButton');
         const playIcon = playButton.querySelector('.player-icon');
-        const volumeSlider = document.getElementById('volumeSlider');
         const statusText = document.getElementById('status');
         
         // Track playing state
@@ -185,8 +195,6 @@
             e.preventDefault(); // Prevent double-firing on iOS
             togglePlay();
         });
-        
-        volumeSlider.addEventListener('input', setVolume);
         
         // Handle audio loading issues
         audio.addEventListener('error', function() {
