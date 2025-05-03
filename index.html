@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Audio Player</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f7;
+            color: #333;
+            touch-action: manipulation;
+        }
+        
+        .container {
+            text-align: center;
+            width: 80%;
+            max-width: 500px;
+        }
+        
+        h1 {
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+        
+        .player-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #0071e3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .player-circle:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .player-icon {
+            color: white;
+            font-size: 3rem;
+        }
+        
+        .volume-control {
+            width: 100%;
+            padding: 1rem 0;
+        }
+        
+        .volume-slider {
+            width: 100%;
+            height: 5px;
+            -webkit-appearance: none;
+            background: #d1d1d6;
+            outline: none;
+            border-radius: 5px;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #0071e3;
+            cursor: pointer;
+        }
+        
+        .volume-slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #0071e3;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .status {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Audio Player</h1>
+        
+        <div class="player-circle" id="playButton">
+            <div class="player-icon">▶</div>
+        </div>
+        
+        <div class="volume-control">
+            <input type="range" min="0" max="1" step="0.01" value="0.7" class="volume-slider" id="volumeSlider">
+        </div>
+        
+        <div class="status" id="status">Ready to play</div>
+    </div>
+
+    <script>
+        // Create audio element
+        const audio = new Audio('noise.mp3');
+        audio.loop = true;
+        audio.volume = 0.7;
+        
+        // Get elements
+        const playButton = document.getElementById('playButton');
+        const playIcon = playButton.querySelector('.player-icon');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const statusText = document.getElementById('status');
+        
+        // Track playing state
+        let isPlaying = false;
+        
+        // iOS requires user interaction to play audio
+        // This function attempts to initialize audio for iOS
+        function initAudioForIOS() {
+            // Create a temporary audio context
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                const audioContext = new AudioContext();
+                // Resume the audio context if it's suspended
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            }
+            
+            // iOS Safari requires this
+            document.body.addEventListener('touchstart', function() {
+                // Create and play a silent audio element
+                const silentAudio = new Audio();
+                silentAudio.play().catch(() => {});
+                
+                // Remove this listener after first touch
+                document.body.removeEventListener('touchstart', this);
+            }, { once: true });
+        }
+        
+        // Initialize for iOS
+        initAudioForIOS();
+        
+        // Toggle play/pause
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+                playIcon.textContent = '▶';
+                statusText.textContent = 'Paused';
+                playButton.style.backgroundColor = '#0071e3';
+            } else {
+                // Play and handle any errors
+                audio.play().catch(error => {
+                    console.error('Error playing audio:', error);
+                    statusText.textContent = 'Error: Tap again';
+                });
+                
+                playIcon.textContent = '⏸';
+                statusText.textContent = 'Playing';
+                playButton.style.backgroundColor = '#34c759';
+            }
+            
+            isPlaying = !isPlaying;
+        }
+        
+        // Set volume
+        function setVolume() {
+            audio.volume = volumeSlider.value;
+        }
+        
+        // Event listeners
+        playButton.addEventListener('click', togglePlay);
+        playButton.addEventListener('touchend', function(e) {
+            e.preventDefault(); // Prevent double-firing on iOS
+            togglePlay();
+        });
+        
+        volumeSlider.addEventListener('input', setVolume);
+        
+        // Handle audio loading issues
+        audio.addEventListener('error', function() {
+            statusText.textContent = 'Error loading audio';
+            playButton.style.backgroundColor = '#ff3b30';
+        });
+        
+        // Handle when audio successfully loads
+        audio.addEventListener('canplaythrough', function() {
+            statusText.textContent = 'Ready to play';
+        });
+    </script>
+</body>
+</html>
